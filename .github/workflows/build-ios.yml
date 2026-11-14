@@ -46,8 +46,17 @@ jobs:
       - name: Build for iOS Simulator without signing
         shell: bash
         run: |
+          set -euo pipefail
           if [[ "${{ steps.project.outputs.kind }}" == "workspace" ]]; then
-            xcodebuild -workspace "${{ steps.project.outputs.path }}" -scheme "TDSCarPlay" -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+            target=(-workspace "${{ steps.project.outputs.path }}")
           else
-            xcodebuild -project "${{ steps.project.outputs.path }}" -scheme "TDSCarPlay" -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+            target=(-project "${{ steps.project.outputs.path }}")
           fi
+          xcodebuild -list "${target[@]}"
+          scheme=$(xcodebuild -list -json "${target[@]}" | python3 -c 'import json,sys; d=json.load(sys.stdin); print((d.get("workspace") or d.get("project") or {}).get("schemes", [""])[0])')
+          if [[ -z "$scheme" ]]; then
+            echo "::error::No shared Xcode scheme found. Share a scheme in Xcode to enable CI builds."
+            exit 1
+          fi
+          echo "Building scheme: $scheme"
+          xcodebuild "${target[@]}" -scheme "$scheme" -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
