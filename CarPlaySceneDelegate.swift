@@ -806,11 +806,19 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
         videos: [TDSYouTubeSearchResult],
         images: [UIImage]
     ) -> CPListImageRowItem {
-        let row = CPListImageRowItem(
-            text: "Recommended",
-            images: images,
-            imageTitles: videos.map(\.title)
-        )
+        let row: CPListImageRowItem
+        if #available(iOS 17.4, *) {
+            row = CPListImageRowItem(
+                text: "Recommended",
+                images: images,
+                imageTitles: videos.map(\.title)
+            )
+        } else {
+            row = CPListImageRowItem(
+                text: videos.first?.title ?? "Recommended",
+                images: images
+            )
+        }
         row.listImageRowHandler = { [weak self] _, index, completion in
             defer { completion() }
             guard videos.indices.contains(index) else { return }
