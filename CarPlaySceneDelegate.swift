@@ -806,28 +806,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
         videos: [TDSYouTubeSearchResult],
         images: [UIImage]
     ) -> CPListImageRowItem {
-        let row: CPListImageRowItem
-        if #available(iOS 26.0, *) {
-            let elements = zip(videos, images).map { video, image in
-                let subtitle = [video.channel, video.details]
-                    .filter { !$0.isEmpty }
-                    .joined(separator: " • ")
-                return CPListImageRowItemRowElement(
-                    image: image,
-                    title: video.title,
-                    subtitle: subtitle.isEmpty ? nil : subtitle
-                )
-            }
-            row = CPListImageRowItem(text: nil, elements: elements, allowsMultipleLines: true)
-        } else if #available(iOS 17.4, *) {
-            row = CPListImageRowItem(
-                text: "Recommended",
-                images: images,
-                imageTitles: videos.map(\.title)
-            )
-        } else {
-            row = CPListImageRowItem(text: videos.first?.title ?? "Recommended", images: images)
-        }
+        let row = CPListImageRowItem(
+            text: "Recommended",
+            images: images,
+            imageTitles: videos.map(\.title)
+        )
         row.listImageRowHandler = { [weak self] _, index, completion in
             defer { completion() }
             guard videos.indices.contains(index) else { return }
@@ -842,12 +825,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
     }
 
     private func carPlayRecommendationThumbnail(from image: UIImage) -> UIImage {
-        let maximumSize: CGSize
-        if #available(iOS 26.0, *) {
-            maximumSize = CPListImageRowItemRowElement.maximumImageSize
-        } else {
-            maximumSize = CPListImageRowItem.maximumImageSize
-        }
+        let maximumSize = CPListImageRowItem.maximumImageSize
         let scale = min(maximumSize.width / image.size.width, maximumSize.height / image.size.height, 1)
         let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
         return UIGraphicsImageRenderer(size: size).image { _ in
