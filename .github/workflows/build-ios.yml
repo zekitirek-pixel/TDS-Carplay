@@ -53,8 +53,8 @@ jobs:
             target=(-project "${{ steps.project.outputs.path }}")
           fi
           xcodebuild -list "${target[@]}"
-          schemes=$(xcodebuild -list -json "${target[@]}" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\\n".join((d.get("workspace") or d.get("project") or {}).get("schemes", [])))')
-          scheme=$(printf '%s\\n' "$schemes" | grep -Fx 'TDS Video' || printf '%s\\n' "$schemes" | head -n 1)
+          schemes=$(xcodebuild -list -json "${target[@]}" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join((d.get("workspace") or d.get("project") or {}).get("schemes", [])))')
+          scheme=$(printf '%s\n' "$schemes" | grep -Fx 'TDS Video' || printf '%s\n' "$schemes" | head -n 1)
           if [[ -z "$scheme" ]]; then
             echo "::error::No shared Xcode scheme found. Share a scheme in Xcode to enable CI builds."
             exit 1
